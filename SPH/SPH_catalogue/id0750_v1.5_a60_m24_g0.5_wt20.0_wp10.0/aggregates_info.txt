@@ -1,0 +1,5 @@
+Body 1 aggregates 32 smaller bodies
+Body 2 aggregates 34 smaller bodies
+Body 20 aggregates 1 smaller bodies
+
+Total bodies merged: 67 (45.89%)

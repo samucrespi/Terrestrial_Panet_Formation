@@ -1,0 +1,5 @@
+Collision_type: quasi_Perfect_Merging
+Main_bodies: 1
+N_fragments: 1028
+Fragment_mass: 0.0225428266537
+Total_mass: 1.463556e+23

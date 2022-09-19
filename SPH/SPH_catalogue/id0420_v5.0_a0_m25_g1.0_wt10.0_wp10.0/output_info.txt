@@ -1,0 +1,5 @@
+Collision_type: Catastrophic_Collision
+Main_bodies: 0
+N_fragments: 18884
+Fragment_mass: 1.0
+Total_mass: 1.195320e+25

@@ -1,0 +1,5 @@
+Collision_type: Partial_Accretion
+Main_bodies: 1
+N_fragments: 1655
+Fragment_mass: 0.0437982650452
+Total_mass: 1.882318e+21

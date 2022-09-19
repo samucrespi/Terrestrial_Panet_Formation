@@ -1,0 +1,126 @@
+--------------------------------
+Reading input parameter file 'simulation.input' ... Done.
+--------------------------------
+Searching for material 'BasaltNakamura', material type 0, in materialconfiguration file '/home/winter/Documents/csv_main/code_27Nov/miluphcuda/material.cfg' ... Found.
+Found Tillotson eos parameters:
+rho_0 = 2700
+A = 2.67e+10
+B = 2.67e+10
+e_0 = 4.87e+08
+e_iv = 4.72e+06
+e_cv = 1.82e+07
+a = 0.5
+b = 1.5
+alpha = 5
+beta = 5
+rho_limit = 0.9
+bulk_modulus = 2.67e+10
+cs = 3144.66 (=sqrt(bulk_modulus/rho_0))
+Found Weibull parameters:
+m = 16
+k = 1e+61
+--------------------------------
+Searching for material 'Ice', material type 1, in materialconfiguration file '/home/winter/Documents/csv_main/code_27Nov/miluphcuda/material.cfg' ... Found.
+Found Tillotson eos parameters:
+rho_0 = 917
+A = 9.47e+09
+B = 9.47e+09
+e_0 = 1e+07
+e_iv = 773000
+e_cv = 3.04e+06
+a = 0.3
+b = 0.1
+alpha = 10
+beta = 5
+rho_limit = 0.9
+bulk_modulus = 9.47e+09
+cs = 3213.59 (=sqrt(bulk_modulus/rho_0))
+Found Weibull parameters:
+m = 9.1
+k = 1e+46
+--------------------------------
+Building sphere(s) ... Done.
+--------------------------------
+Compute initial position via tracing back the analytical orbit from a given v/v_esc and impact angle at "touching ball" distance:
+  The mutual v_esc at "touching ball" distance (8.681435e+05 m) is 5.376964e+02 m/s, the relative velocity (8.065446e+02 m/s) is 1.500000e+00 times this value.
+  This is a hyperbolic orbit with a = 3.472574e+05 m and e = 3.072051e+00.
+  At the desired initial distance (4.340717e+06 m) the mutual v_esc is 2.404651e+02 m/s, the relative velocity (6.474722e+02 m/s) is 2.692582e+00 times this value.
+  (impact angle at this distance = 1.246003e+01°)
+--------------------------------
+Particle numbers:
+  desired N = 20000	 actual/final N = 19958
+  projectile: N = 1809	 N_core = 1075	 N_mantle = 734	 N_shell = 0
+  target:     N = 18149	 N_core = 10473	 N_mantle = 7676	 N_shell = 0
+----------------
+Materials:
+  core/mantle/shell:  "BasaltNakamura"/"Ice"/"BasaltNakamura"
+  core:   mat. type = 0	 rho_0 = 2700	 cs = 3.144660e+03	 eos = T
+  mantle: mat. type = 1	 rho_0 = 917	 cs = 3.213589e+03	 eos = T
+  shell:  mat. type = 0	 rho_0 = 2700	 cs = 3.144660e+03	 eos = T
+----------------
+Masses:
+  total: desired:      M = 1.878600e+21
+         actual/final: M = 1.880369e+21
+  projectile: desired:      M = 1.707818e+20	 M_core = 1.366255e+20	 M_mantle = 3.415636e+19	 M_shell = 0.000000e+00
+              actual/final: M = 1.723582e+20	 M_core = 1.399317e+20	 M_mantle = 3.242650e+19	 M_shell = -9.789440e+05
+  target: desired:      M = 1.707818e+21	 M_core = 1.366255e+21	 M_mantle = 3.415636e+20	 M_shell = 0.000000e+00
+          actual/final: M = 1.708011e+21	 M_core = 1.368494e+21	 M_mantle = 3.395170e+20	 M_shell = 3.932160e+06
+Mantle/shell mass fractions:
+  projectile: mantle: desired = 0.2	 actual/final = 0.188134
+              shell:  desired = 0	 actual/final = -5.67971e-15
+  target: mantle: desired = 0.2	 actual/final = 0.198779
+          shell:  desired = 0	 actual/final = 2.30219e-15
+----------------
+Radii:
+  projectile: desired:      R = 2.757000e+05	 R_core = 2.293664e+05	 R_mantle = 2.757000e+05
+              actual/final: R = 2.750097e+05	 R_core = 2.312089e+05	 R_mantle = 2.750097e+05
+  target: desired:      R = 5.934424e+05	 R_core = 4.935267e+05	 R_mantle = 5.934424e+05
+          actual/final: R = 5.931338e+05	 R_core = 4.938088e+05	 R_mantle = 5.931338e+05
+  sum of actual/final radii = 8.681435e+05
+----------------
+Geometry:
+  At "touching ball" distance (R_p+R_t = 8.681435e+05):
+    v/v_esc = 1.500000e+00
+    impact angle = 6.000000e+01°
+  At initial distance (ini_dist = 4.340717e+06):
+    ini_vel = -6.474722e+02
+    impact parameter = 9.365466e+05
+  initial lattice structure: HEXAGONAL CLOSE-PACKED
+  mean particle dist. mpd = 4.083849e+04	 sml = 8.2085361139e+04 ( = mpd * 2.010000e+00 )
+  projectile's initial position = (9.3654662981e+05,4.2384795193e+06,0.0000000000e+00)
+Barycentric correction applied (w.r.t. proj and target). Barycenter initially at (first line x, second line v):
+8.58456649519835773e+04 3.88507182814084925e+05 -1.85202412017030835e-10
+0.00000000000000000e+00 -5.93485477307820233e+01 0.00000000000000000e+00
+----------------
+Rotated initial configuration used. Angles (°):
+  target:     z/y/x = 20/20/20
+  projectile: z/y/x = -20/-20/-20
+----------------
+Relaxation technique:
+  Calculate hydrostatic structure and set particle densities/masses accordingly,
+  calculate and set internal energies following adiabatic compression.
+----------------
+Damage model:
+  weibulling core material:  yes	 k = 1e+61	 m = 16
+  weibulling mantle material:  yes	 k = 1e+46	 m = 9.1
+  weibulling shell material: no
+----------------
+A courant-like criterion suggests:	 Delta_t < 1.270806e+01
+--------------------------------
+Now weibulling the projectile's core, material 'BasaltNakamura', material type 0 ... Done.
+Distributed 7029 flaws for 1075 particles.
+Mean number of flaws per particle: 6.5386
+--------------------------------
+Now weibulling the target's core, material 'BasaltNakamura', material type 0 ... Done.
+Distributed 130904 flaws for 10473 particles.
+Mean number of flaws per particle: 12.4992
+--------------------------------
+Now weibulling the projectile's mantle, material 'Ice', material type 1 ... Done.
+Distributed 5100 flaws for 734 particles.
+Mean number of flaws per particle: 6.94823
+--------------------------------
+Now weibulling the target's mantle, material 'Ice', material type 1 ... Done.
+Distributed 59874 flaws for 7676 particles.
+Mean number of flaws per particle: 7.80016
+--------------------------------
+Writing 19958 particles to the output file (for use with MILUPHCUDA in SOLID runs!) ... Done.

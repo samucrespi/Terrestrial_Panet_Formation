@@ -1,0 +1,5 @@
+Collision_type: Erosive_Collision
+Main_bodies: 2
+N_fragments: 613
+Fragment_mass: 0.0135279506419
+Total_mass: 1.279753e+24

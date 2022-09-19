@@ -1,0 +1,32 @@
+Body 1 aggregates 943 smaller bodies
+Body 2 aggregates 1 smaller bodies
+Body 4 aggregates 1 smaller bodies
+Body 8 aggregates 2 smaller bodies
+Body 13 aggregates 1 smaller bodies
+Body 26 aggregates 1 smaller bodies
+Body 33 aggregates 1 smaller bodies
+Body 36 aggregates 1 smaller bodies
+Body 50 aggregates 1 smaller bodies
+Body 67 aggregates 1 smaller bodies
+Body 70 aggregates 1 smaller bodies
+Body 71 aggregates 1 smaller bodies
+Body 83 aggregates 1 smaller bodies
+Body 84 aggregates 1 smaller bodies
+Body 87 aggregates 1 smaller bodies
+Body 89 aggregates 1 smaller bodies
+Body 101 aggregates 1 smaller bodies
+Body 124 aggregates 1 smaller bodies
+Body 128 aggregates 1 smaller bodies
+Body 166 aggregates 1 smaller bodies
+Body 172 aggregates 1 smaller bodies
+Body 184 aggregates 1 smaller bodies
+Body 206 aggregates 1 smaller bodies
+Body 231 aggregates 1 smaller bodies
+Body 320 aggregates 1 smaller bodies
+Body 537 aggregates 1 smaller bodies
+Body 596 aggregates 1 smaller bodies
+Body 1124 aggregates 1 smaller bodies
+Body 1513 aggregates 1 smaller bodies
+Body 1519 aggregates 1 smaller bodies
+
+Total bodies merged: 973 (28.86%)

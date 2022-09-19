@@ -1,0 +1,16 @@
+#largest aggregate:
+#  mass  fraction_mat0  fraction_mat1
+1.333097e+23	9.015072e-01	9.849279e-02
+#2nd largest aggregate:
+#  mass  fraction_mat0  fraction_mat1
+1.260171e+22	9.143243e-01	8.567572e-02
+#overall scenario data:
+#  mass  fraction_mat0  fraction_mat1
+1.465881e+23	9.000439e-01	9.995605e-02
+#kinetics of 2 largest:
+#  distance  v_rel  v_rel/v_esc
+1.529913e+08	3.848231e+03	1.078546e+01
+#pos and vel of 2 largest (2nd largest first):
+#  x1  x2  x3  v1  v2  v3
+-2.751859e+07	-1.366467e+08	2.660326e+03	-7.736324e+02	-3.419866e+03	-1.614624e-01
+2.664389e+06	1.333774e+07	-6.187925e+02	7.482183e+01	3.336671e+02	4.402564e-02

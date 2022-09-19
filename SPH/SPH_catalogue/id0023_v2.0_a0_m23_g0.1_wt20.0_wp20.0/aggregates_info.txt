@@ -1,0 +1,21 @@
+Body 1 aggregates 164 smaller bodies
+Body 8 aggregates 1 smaller bodies
+Body 16 aggregates 1 smaller bodies
+Body 51 aggregates 1 smaller bodies
+Body 109 aggregates 1 smaller bodies
+Body 123 aggregates 1 smaller bodies
+Body 127 aggregates 1 smaller bodies
+Body 136 aggregates 1 smaller bodies
+Body 171 aggregates 1 smaller bodies
+Body 179 aggregates 1 smaller bodies
+Body 200 aggregates 1 smaller bodies
+Body 229 aggregates 1 smaller bodies
+Body 232 aggregates 1 smaller bodies
+Body 234 aggregates 1 smaller bodies
+Body 300 aggregates 1 smaller bodies
+Body 313 aggregates 1 smaller bodies
+Body 322 aggregates 1 smaller bodies
+Body 382 aggregates 1 smaller bodies
+Body 455 aggregates 1 smaller bodies
+
+Total bodies merged: 182 (16.34%)
