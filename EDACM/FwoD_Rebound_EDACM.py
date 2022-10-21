@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------
 #
 # FwoD_Rebound.py   (old name: SPH_Rebound.py)
-# By S. Crespi, Mar 2022
+# By S. Crespi, Oct 2022
 # Version 5.0
 #
 # This algorithm uses a SPH catalogue ('SPH.table') to solve collisions.
@@ -46,6 +46,8 @@ scenario = "test"
 NGG = 2
 
 # collision solver method
+#   available methods: 	- "SPH_table_interpolation"
+#						- "EDACM"
 coll_method = "SPH_table_interpolation"
 #coll_method = "EDACM"
 
