@@ -49,7 +49,7 @@ NGG = 2
 #   available methods: 	- "SPH_table_interpolation"
 #						- "EDACM"
 coll_method = "SPH_table_interpolation"
-#coll_method = "EDACM"
+coll_method = "EDACM"
 
 #************************   BOOLEAN OPTIONS   *************************
 
@@ -59,6 +59,8 @@ save_progess=True			# save the progress of the simulation on a log file
 
 #***************************   LIBRARIES   ****************************
 
+from ensurepip import version
+from math import gamma
 import rebound
 import reboundx
 import numpy as np
@@ -172,16 +174,18 @@ def collision_solver(sim_pointer, collision):
 	inccol=np.pi/2.-np.arccos(xCoM[2]/rcol)	# coll point "inclination"
 
 	# collision solving method
-	if coll_method=="SPH_table_interpolation": largest = interpolate_SPHtable(coll_p)
-	elif coll_method=="EDACM": largest = EDACM(coll_p)
-	
-	# put the more massive one first
-	if largest[0][2]<largest[1][2]: largest[0],largest[1] = largest[1],largest[0]
+	if coll_method=="SPH_table_interpolation":
+		largest = interpolate_SPHtable(coll_p)
 
-	# get the surviors
-	Nbig = get_Nbig(largest[0][2],largest[1][2],coll_p[3])
-	survivors = []
-	for i in range(Nbig): survivors.append(largest[i])
+		# put the more massive one first
+		if largest[0][2]<largest[1][2]: largest[0],largest[1] = largest[1],largest[0]
+
+		# get the surviors
+		Nbig = get_Nbig(largest[0][2],largest[1][2],coll_p[3])
+		survivors = []
+		for i in range(Nbig): survivors.append(largest[i])
+
+	elif coll_method=="EDACM": survivors,Nbig = EDACM(coll_p)
 	
 	# in case of a single survivor put it at the collision location
 	#if Nbig==1: survivors[0][0][0]=0.
@@ -201,17 +205,17 @@ def collision_solver(sim_pointer, collision):
 	print('\n Mass and Water check:')
 	print('--- before collision ---')
 	print(' TOT: m={:.4f} MEAR'.format(mtot/MEAR))
-	print('      w={:.5f} MEAR (wf:{:.2f}%)'.format(mwtot/MEAR,100.*wtot_mtot))
+	print('      w={:.7f} MEAR (wf:{:.4f}%)'.format(mwtot/MEAR,100.*wtot_mtot))
 	print(' - T: m={:.4f} MEAR ({:.2f}%)'.format(mtot/(coll_p[3]+1.)/MEAR,100./(coll_p[3]+1.)))
-	print('      w={:.5f} MEAR ({:.2f}% from this body with wf:{:.3f}%)'.format(coll_p[4]*mtot*1./(coll_p[3]+1.)/MEAR/100,coll_p[4]*1./(coll_p[3]+1.)/wtot_mtot,coll_p[4]))
-	print(' - P: m={:.5f} MEAR ({:.3f}%)'.format(mtot*coll_p[3]/(coll_p[3]+1.)/MEAR,100.*coll_p[3]/(coll_p[3]+1.)))
-	print('      w={:.6f} MEAR ({:.3f}% from this body with wf:{:.3f}%)'.format(coll_p[5]*mtot*coll_p[3]/(coll_p[3]+1.)/MEAR/100,coll_p[5]*coll_p[3]/(coll_p[3]+1.)/wtot_mtot,coll_p[5]))
+	print('      w={:.7f} MEAR ({:.2f}% from this body with wf:{:.4f}%)'.format(coll_p[4]*mtot*1./(coll_p[3]+1.)/MEAR/100,coll_p[4]*1./(coll_p[3]+1.)/wtot_mtot,coll_p[4]))
+	print(' - P: m={:.5f} MEAR ({:.2f}%)'.format(mtot*coll_p[3]/(coll_p[3]+1.)/MEAR,100.*coll_p[3]/(coll_p[3]+1.)))
+	print('      w={:.7f} MEAR ({:.2f}% from this body with wf:{:.4f}%)'.format(coll_p[5]*mtot*coll_p[3]/(coll_p[3]+1.)/MEAR/100,coll_p[5]*coll_p[3]/(coll_p[3]+1.)/wtot_mtot,coll_p[5]))
 	print('--- after collision ---')
 	for i in range(Nbig):
 		print(' - S{}: m={:.4f} MEAR ({:.2f}%)'.format(i+1,mtot*survivors[i][2]/MEAR,100.*survivors[i][2]))
-		print('       w={:.5f} MEAR ({:.2f}% - wf:{:.2f}%)'.format(survivors[i][3]*mwtot/MEAR,100.*survivors[i][3],survivors[i][3]*wtot_mtot*100/survivors[i][2]))
+		print('       w={:.7f} MEAR ({:.2f}% - wf:{:.4f}%)'.format(survivors[i][3]*mwtot/MEAR,100.*survivors[i][3],survivors[i][3]*wtot_mtot*100/survivors[i][2]))
 	print(' - fr: m={:.5f} MEAR ({:.3f}%)'.format(mtot*mfr/MEAR,100.*mfr))
-	if mfr>0: print('       w={:.6f} MEAR ({:.3f}% - wf:{:.3f}%)'.format(mwfr*mwtot/MEAR,100.*mwfr,mwfr*wtot_mtot*100/mfr))
+	if mfr>0: print('       w={:.7f} MEAR ({:.3f}% - wf:{:.3f}%)'.format(mwfr*mwtot/MEAR,100.*mwfr,mwfr*wtot_mtot*100/mfr))
 	print(' ')
 	#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	
 
@@ -1006,8 +1010,154 @@ def EDACM(params):
 	"""
 	EDACM collision solver - from Leinhardt & Stewart 2012
 	"""
+	rho1 = 1e3*AU*AU*AU/MSUN      # 1e3 kg/m3 [MSUN/AU3]
+	c = 1.9         # dimensionless material parameter
+	mubar = 0.3625  # t-p energy and momentum coupling constant
+	eta = -1.5      # super-catastrophic regime slope
 
-	return
+	v0, alpha, mtot, gamma, wf1, wf2 = params
+
+	# interacting mass
+	Mt = mtot/(1.+gamma)
+	Mp = Mt*gamma
+	Rt = get_radius(Mt,wf1)
+	Rp = get_radius(Mp,wf2)
+
+	mu = Mt*Mp/mtot
+	vesc = np.sqrt(2.*mtot/(Rt+Rp))
+	vi = v0*vesc
+	Q = 0.5*mu*vi*vi/mtot		# [AU^2/(yr/2p)^2]
+
+	"""Step 1: get m_interact"""
+	b0 = (Rt-Rp)/(Rt+Rp)
+	b = np.sin(alpha*np.pi/180)
+
+	if b<=b0: alpha = 1.
+	else:
+		l = (Rt+Rp)*(1.-b)
+		alpha_inter = (3.*Rp-l)*l*l/(4.*Rp*Rp*Rp)
+	m_interact = alpha_inter*Mp
+
+	"""Step 2: perfect merging regime"""
+	M = Mt + m_interact
+	rho_t = Mt/(4.*np.pi*np.power(Rt,3.)/3.)
+	rho_p = Mp/(4.*np.pi*np.power(Rp,3.)/3.)
+	rho = (rho_t*Mt+rho_p*m_interact)/M
+	R_interact = np.power((3.*M)/(4.*np.pi*rho),1./3.)
+	vesc_inter = np.sqrt(2.*M/R_interact)
+
+	print("\nvi = ",vi)
+	print("vesc = ",vesc_inter)
+
+	if vi<vesc_inter:
+		# === Perfect Merging ===
+		r = np.zeros(3)
+		v = np.zeros(3)
+		m = 1.
+		gwf = 1.
+		surv = [[r,v,m,gwf]]
+		print("\n >>> Perfect Merging Regime <<<")
+		return surv,1 
+
+	"""Step 3: grazing impact"""
+	bcrit = Rt/(Rt+Rp)
+	if b>=bcrit: grazing_regime = True
+	else: grazing_regime = False
+
+	"""Step 4: catastrophic disruption criterion"""
+	RC1 = np.power(mtot/(4.*np.pi*rho1/3.),1./3.)
+	Qstar1 = c*(4./5.)*np.pi*rho1*RC1*RC1
+	fgamma = np.power(gamma+1.,2.)/gamma/4.
+	Qstar = Qstar1*np.power(fgamma,-1.+2./3./mubar)
+	mua = Mt*m_interact/M
+	Qstar_prime = Qstar*np.power(mu/mua,2.-3.*mubar/2.)
+
+	"""Step 5: onset of erosion"""
+	Qerosion = 2.*Qstar_prime*(1.-Mt/mtot)
+	Verosion = np.sqrt(2.*Qerosion*mtot/mu)
+
+	print("vero = ",Verosion)
+
+	"""Step 6: hit-and-run regime"""
+	wf_to_gwf = 1./(Mt*wf1+Mp*wf2)
+	if grazing_regime and vi<Verosion:
+		# === Hit-and-Run ===
+		r = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+		v = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+		m = Mt/mtot
+		gwf = Mt*wf1*wf_to_gwf
+		surv = [[r,v,m,gwf]]		
+		
+		if gamma>0.5:
+			r = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+			v = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+			m = Mp/mtot
+			gwf = Mp*wf2*wf_to_gwf
+			surv.append([r,v,m,gwf])	
+		else:
+			phi_REV = 2.*np.arccos((l-Rp)/Rp)
+			Ainteract = Rp*Rp*(np.pi-(phi_REV-np.sin(phi_REV))/2.)
+			Linteract = 2.*Rt*np.sqrt(1.-np.power(1.-l/Rt/2.,2.))
+			Minteract_REV = Ainteract*Linteract*rho_t   # -- I multiplied by rho_t,is it right?????? (eq 48 LS12)
+			Mp_REV = Minteract_REV*1.
+			Mt_REV = Mp*1.
+			RC1_REV = np.power((Mp_REV+Mt_REV)/(4.*np.pi*rho1/3.),1./3.)
+			Qstar1_REV = c*(4./5.)*np.pi*rho1*RC1_REV*RC1_REV
+			gamma_REV = Mp_REV/Mt_REV
+			fgamma_REV = np.power(gamma_REV+1.,2.)/gamma_REV/4.
+			Qstar_prime_REV = Qstar1_REV*np.power(fgamma_REV,-1.+2./3./mubar)
+
+			if Q/Qstar_prime_REV<1.8: msl = mtot*(1.-0.5*Q/Qstar_prime_REV)
+			else: msl = mtot*0.1*np.power(Q/Qstar_prime_REV/1.8,eta)
+			
+			print(Q/Qstar_prime_REV)
+			print(Mp/mtot)
+			print(msl/mtot)
+			if msl<0.1*Mp:
+				print("\n >>> Hit-and-Run Regime with Projectile Disrupted <<<")
+				return surv,1
+			else:
+				if msl>Mp: msl = Mp*1.
+				r = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+				v = np.zeros(3)		####### >>>>>>>>>>>>>>>>>>>>>>>> ??????????????
+				m = msl/mtot
+				gwf = msl*wf2*wf_to_gwf
+				surv.append([r,v,m,gwf])	
+		print("\n >>> Hit-and-Run Regime <<<")
+		return surv,2
+
+	"""Step 7: onset of supercatastriphic disruption"""
+	Qsupercat = 2.*Qstar_prime*(1.-0.1)
+	Vsupercat = np.sqrt(2.*Qsupercat*mtot/mu)
+	print("vsupercat = ",Vsupercat)
+
+	if vi<Vsupercat:
+		"""Step 8 & 10: erosion & accretion regime"""
+		mlr = mtot*(1.-0.5*Q/Qstar_prime)
+	else:
+		"""Step 9: Super-Catastrophic regime"""
+		mlr = mtot*0.1*np.power(Q/Qstar_prime/1.8,eta)
+
+	if mlr<0.1*Mt:
+		# === Supercatastriphic Disruption ===
+		print("\n >>> Supercatastriphic Disruption Regime <<<")
+		return [],0
+
+	else:	
+		r = np.zeros(3)
+		v = np.zeros(3)
+		m = mlr/mtot
+		gwf = mlr*wf1*wf_to_gwf
+		surv = [[r,v,m,gwf]]
+
+		if vi>Verosion:
+			# === Erosion ===
+			print("\n >>> Erosive Regime <<<")
+		else:
+			# === Accretion ===
+			print("\n >>> Accretion Regime <<<")
+
+		return surv,1
 
 
 #-------------------
