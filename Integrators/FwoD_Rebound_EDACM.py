@@ -48,8 +48,8 @@ NGG = 2
 # collision solver method
 #   available methods: 	- "SPH_table_interpolation"
 #						- "EDACM"
-coll_method = "SPH_table_interpolation"
-#coll_method = "EDACM"
+#coll_method = "SPH_table_interpolation"
+coll_method = "EDACM"
 
 #************************   BOOLEAN OPTIONS   *************************
 
