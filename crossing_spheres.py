@@ -21,6 +21,33 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 u, v = np.mgrid[0:2 * np.pi:200j, 0:np.pi:200j]
+#Target
+xt = np.cos(theta*np.pi/180)*(Rt+Rp)
+yt = 0.
+zt = b*(Rt+Rp)
+x = Rt*np.cos(u) * np.sin(v) - xt
+y = Rt*np.sin(u) * np.sin(v) - yt
+z = Rt*np.cos(v) - zt
+ax.plot_surface(x, y, z,alpha=0.4,color='k')#, cmap=plt.cm.YlGnBu_r)
+
+#Projectile
+x = Rp*np.cos(u) * np.sin(v)
+y = Rp*np.sin(u) * np.sin(v)
+z = Rp*np.cos(v)
+ax.plot_surface(x, y, z,alpha=1,color='b')
+
+ax.plot([0,-Rp-Rt],[0,0],[0,0],lw=2,c='k')
+ax.set_xlim(-2,2)
+ax.set_ylim(-2,2)
+ax.set_zlim(-2,2)
+plt.show()
+
+
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+
+u, v = np.mgrid[0:2 * np.pi:200j, 0:np.pi:200j]
 
 N = 10000
 
@@ -53,15 +80,24 @@ if pin!=[]:
     pin = np.asarray(pin)
     ax.scatter(pin[:,0],pin[:,1],pin[:,2],c='b',s=1)
 if pout!=[]:
-    pout = np.asarray(pout)
-    ax.scatter(pout[:,0],pout[:,1],pout[:,2],c='r',s=1)
+    #pout = np.asarray(pout)
+    #ax.scatter(pout[:,0],pout[:,1],pout[:,2],c='r',s=1)
+    r,w = [],[]
+    for v in pout:
+        if v[2]<Rt-zt: w.append(v)
+        else: r.append(v)
+    r = np.asarray(r)
+    ax.scatter(r[:,0],r[:,1],r[:,2],c='g',s=1)
+    w = np.asarray(w)
+    ax.scatter(w[:,0],w[:,1],w[:,2],c='r',s=1)
+
 
 ax.plot([0,-Rp-Rt],[0,0],[0,0],lw=2,c='k')
 ax.set_xlim(-2,2)
 ax.set_ylim(-2,2)
 ax.set_zlim(-2,2)
 plt.show()
-
+quit()
 
 def get_minter(Rp,Rt,b,N=100,test=20):
     if b<(Rt-Rp)/(Rt+Rp): return 1,0
@@ -78,13 +114,13 @@ def get_minter(Rp,Rt,b,N=100,test=20):
         res.append(nin/(nin+nout))
     return np.mean(res),np.std(res)
 
-Rps = np.linspace(0.1,0.9,5)
+Rps = np.linspace(0.1,0.9,3)
 c = get_colours_for_plot(len(Rps))
 for i,Rp in enumerate(Rps):
     b0 = (Rt-Rp)/(Rt+Rp)
     X,Y,Yerr=[],[],[]
     for b in np.linspace(b0,1,20):
-        y,yerr=get_minter(Rp,Rt,b,N=10000,test=20)
+        y,yerr=get_minter(Rp,Rt,b,N=1000,test=20)
         X.append((b-b0)/(1.-b0))
         Y.append(y)
         Yerr.append(yerr)
