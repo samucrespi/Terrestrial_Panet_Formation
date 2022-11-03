@@ -49,7 +49,7 @@ NGG = 2
 #   available methods: 	- "SPH_table_interpolation"
 #						- "EDACM"
 coll_method = "SPH_table_interpolation"
-coll_method = "EDACM"
+#coll_method = "EDACM"
 
 #************************   BOOLEAN OPTIONS   *************************
 
@@ -150,7 +150,7 @@ def collision_solver(sim_pointer, collision):
 	
 	# save snapshot at the collision time
 	collision_snapshot(ps,indeces)
-	
+
 	#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	print('\n{}'.format('-'*80))
 	print('Collision parameters: ')
@@ -219,11 +219,6 @@ def collision_solver(sim_pointer, collision):
 	print(' ')
 	#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	
 
-	# change soc from spherical to cartisian
-	for i in range(Nbig):
-		survivors[i][0]=from_sph_to_cart(survivors[i][0])
-		survivors[i][1]=from_sph_to_cart(survivors[i][1])
-
 	# convert from water mass to water fraction for the surviving bodies and fragments
 	for i in range(Nbig): survivors[i][3]=100.*survivors[i][3]*wtot_mtot/survivors[i][2]
 	if mfr==0.: wffr=0.
@@ -232,6 +227,20 @@ def collision_solver(sim_pointer, collision):
 	# converting mass fraction to real mass for the surviving bodies and fragments
 	for i in range(Nbig): survivors[i][2]=survivors[i][2]*mtot
 	mfr=mfr*mtot
+
+	if coll_method=="SPH_table_interpolation":
+		# change soc from spherical to cartisian
+		for i in range(Nbig):
+			survivors[i][0]=from_sph_to_cart(survivors[i][0])
+			survivors[i][1]=from_sph_to_cart(survivors[i][1])
+
+	elif coll_method=="EDACM":
+		if Nbig==2:
+			# get dynamics if Hit-and-Run
+			survivors = evolve_point_particles(p1,p2,survivors,ps[0])
+			print("HEREEE")
+			xrel = np.asarray(survivors[0][0])-np.asarray(survivors[1][0])
+			print(np.sqrt(xrel.dot(xrel)),get_radius(survivors[0][2],0)+get_radius(survivors[1][2],0))
 
 	# check for possible reaccretion
 	if Nbig==2:
@@ -249,16 +258,14 @@ def collision_solver(sim_pointer, collision):
 			Nbig=1
 			survivors=[[x,v,m,wf]]
 	
-	
-	# back-tracing the surviving bodies to t=t_coll
-	if Nbig==2: back_tracing_remn(survivors,d=rcol,btd=min_btd)
+	if coll_method=="SPH_table_interpolation":
+		# back-tracing the surviving bodies to t~t_coll
+		if Nbig==2: back_tracing_remn(survivors,d=rcol,btd=min_btd)
 
-	# get the rotation angles between SPH SoC and sim SoC
-	chi,psi,h=angle_SPH_Rebound([x1,v1,m1],[x2,v2,m2],R1,R2)
+		# get the rotation angles between SPH SoC and sim SoC
+		chi,psi,h=angle_SPH_Rebound([x1,v1,m1],[x2,v2,m2],R1,R2)
 
-	# from SPH SoC to Rebound SoC and update particles
-	if Nbig>0:
-
+		# from SPH SoC to Rebound SoC 
 		for i in range(Nbig):
 			# rotate SoC and move to CoM
 			if h[2]>0:
@@ -266,27 +273,30 @@ def collision_solver(sim_pointer, collision):
 				survivors[i][1]=Ry(survivors[i][1],np.pi)
 			survivors[i][0]=Rz(Rx(survivors[i][0],np.pi/2.-chi),psi)+xCoM
 			survivors[i][1]=Rz(Rx(survivors[i][1],np.pi/2.-chi),psi)+vCoM
-			
-			# update parameters
-			sim.particles[indeces[i]].x=survivors[i][0][0]
-			sim.particles[indeces[i]].y=survivors[i][0][1]
-			sim.particles[indeces[i]].z=survivors[i][0][2]
-			sim.particles[indeces[i]].vx=survivors[i][1][0]
-			sim.particles[indeces[i]].vy=survivors[i][1][1]
-			sim.particles[indeces[i]].vz=survivors[i][1][2]
-			sim.particles[indeces[i]].m=survivors[i][2]
-			sim.particles[indeces[i]].params['wf']=survivors[i][3]
-			sim.particles[indeces[i]].r=get_radius(survivors[i][2],survivors[i][3])
+	else: chi,psi,h=0,0,[0,0,0]
+
+
+	# update particles
+	for i in range(Nbig):			
+		sim.particles[indeces[i]].x=survivors[i][0][0]
+		sim.particles[indeces[i]].y=survivors[i][0][1]
+		sim.particles[indeces[i]].z=survivors[i][0][2]
+		sim.particles[indeces[i]].vx=survivors[i][1][0]
+		sim.particles[indeces[i]].vy=survivors[i][1][1]
+		sim.particles[indeces[i]].vz=survivors[i][1][2]
+		sim.particles[indeces[i]].m=survivors[i][2]
+		sim.particles[indeces[i]].params['wf']=survivors[i][3]
+		sim.particles[indeces[i]].r=get_radius(survivors[i][2],survivors[i][3])
 			
 		#vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv	
-			print('\n Survivor ',i+1)
-			print('   m: {:.4f} [MEAR]'.format(survivors[i][2]/MEAR))
-			print('   wf: {:.2f} [%]'.format(survivors[i][3]))
-			print('   r: ',survivors[i][0],' [AU]')
-			print('   v: ',survivors[i][1],' [AU/yr/2pi]')
-			print('   a: {:.3f} [AU]'.format(sim.particles[indeces[i]].a))
-			print('   e: {:.4f} '.format(sim.particles[indeces[i]].e))
-			print('   inc: {:.4f} [pi]'.format(sim.particles[indeces[i]].inc/np.pi))
+		print('\n Survivor ',i+1)
+		print('   m: {:.4f} [MEAR]'.format(survivors[i][2]/MEAR))
+		print('   wf: {:.2f} [%]'.format(survivors[i][3]))
+		print('   r: ',survivors[i][0],' [AU]')
+		print('   v: ',survivors[i][1],' [AU/yr/2pi]')
+		print('   a: {:.3f} [AU]'.format(sim.particles[indeces[i]].a))
+		print('   e: {:.4f} '.format(sim.particles[indeces[i]].e))
+		print('   inc: {:.4f} [pi]'.format(sim.particles[indeces[i]].inc/np.pi))
 		print()
 		#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	
 	
@@ -349,7 +359,7 @@ def get_Nbig(m1,m2,g):
 	else: return 2				# Hit-and-run
 
 def back_tracing_remn(ss,d=1.,btd=3.):
-	# evolves backward in time the two surviving bodies untill they are at distance btd*R_Hill_mutual
+	# evolves backward in time the two surviving bodies until they are at distance btd*R_Hill_mutual
 
 	m1,m2=ss[0][2],ss[1][2]
 	rmin=btd*Hill_R_mutual(m1,m2,d)
@@ -1159,6 +1169,71 @@ def EDACM(params):
 
 		return surv,1
 
+def evolve_point_particles(p1,p2,survivors,psun,drec=2.1):
+	""" Integrate two pointlike particles up to reciprocal distance drec times the sum or the actual radii"""
+	sim2p = rebound.Simulation()
+	sim2p.integrator = "mercurius"
+	rr1,rr2 = get_radius(survivors[0][2],0),get_radius(survivors[1][2],0)
+	vrel = np.asarray([p1.vx-p2.vx,p1.vy-p2.vy,p1.vz-p2.vz])
+	vmod = np.sqrt(vrel.dot(vrel))
+	Dt = drec*(rr1+rr2)/vmod
+	sim2p.dt = Dt/1e4
+	# --- Sun
+	sim2p.add(m=psun.m,x=psun.x,y=psun.y,z=psun.z)
+	for i,p in enumerate([p1,p2]): sim2p.add(m=survivors[i][2],r=0,x=p.x,y=p.y,z=p.z,vx=p.vx,vy=p.vy,vz=p.vz)
+	ps2p = sim2p.particles
+	sim2p.t = 0
+
+	plot = False
+	if plot:
+		import matplotlib.pyplot as plt
+		import matplotlib.patches as ptc
+		fig, axs = plt.subplots(2)
+		rs = [rr1,rr2]
+		cs = ['r','b']
+		speed = 0.0001
+		for i,p in enumerate(ps2p[1:]):
+			axs[0].plot(p.x,p.y,'.'+cs[i])
+			axs[0].plot([p.x,p.x+speed*p.vx],[p.y,p.y+speed*p.vy],c=cs[i])
+			axs[0].add_patch(ptc.Circle((p.x,p.y),radius=rs[i],alpha=0.1,color=cs[i]))
+			axs[1].plot(p.x,p.z,'.'+cs[i])
+			axs[1].plot([p.x,p.x+speed*p.vx],[p.z,p.z+speed*p.vz],c=cs[i])
+			axs[1].add_patch(ptc.Circle((p.x,p.z),radius=rs[i],alpha=0.1,color=cs[i]))
+
+	xyz = []
+	for t in np.linspace(0,100*Dt,1000):
+		sim2p.integrate(t)
+		distance = np.asarray([ps2p[1].x-ps2p[2].x,ps2p[1].y-ps2p[2].y,ps2p[1].z-ps2p[2].z])
+		if np.sqrt(distance.dot(distance))>drec*(rr1+rr2): break
+		if plot: xyz.append([ps2p[1].x,ps2p[1].y,ps2p[1].z,ps2p[2].x,ps2p[2].y,ps2p[2].z])
+
+	if plot:
+		for i,p in enumerate(ps2p[1:]):
+			axs[0].plot(p.x,p.y,'.'+cs[i])
+			axs[0].plot([p.x,p.x+speed*p.vx],[p.y,p.y+speed*p.vy],c=cs[i])
+			axs[0].add_patch(ptc.Circle((p.x,p.y),radius=rs[i],alpha=0.1,color=cs[i]))
+			axs[1].plot(p.x,p.z,'.'+cs[i])
+			axs[1].plot([p.x,p.x+speed*p.vx],[p.z,p.z+speed*p.vz],c=cs[i])
+			axs[1].add_patch(ptc.Circle((p.x,p.z),radius=rs[i],alpha=0.1,color=cs[i]))
+
+		xyz = np.asarray(xyz)
+		axs[0].scatter(xyz[:,0],xyz[:,1],c=cs[0],s=1)
+		axs[0].scatter(xyz[:,3],xyz[:,4],c=cs[1],s=1)
+		axs[1].scatter(xyz[:,0],xyz[:,2],c=cs[0],s=1)
+		axs[1].scatter(xyz[:,3],xyz[:,5],c=cs[1],s=1)
+
+		for i in range(2):
+			axs[i].axis('equal')
+			axs[i].set_xlabel('x [AU]')
+		axs[0].set_ylabel('y [AU]')
+		axs[1].set_ylabel('z [AU]')
+		plt.show()
+	
+	for i in range(2):
+		survivors[i][0] = np.asarray([ps2p[i+1].x,ps2p[i+1].y,ps2p[i+1].z])
+		survivors[i][1] = np.asarray([ps2p[i+1].vx,ps2p[i+1].vy,ps2p[i+1].vz])
+
+	return survivors
 
 #-------------------
 # SPH catalogue
