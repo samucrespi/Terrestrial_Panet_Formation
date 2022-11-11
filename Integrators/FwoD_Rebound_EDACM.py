@@ -3,7 +3,7 @@
 #
 # FwoD_Rebound.py   (old name: SPH_Rebound.py)
 # By S. Crespi, Oct 2022
-# Version 5.0
+# Version 5.1
 #
 # This algorithm uses a SPH catalogue ('SPH.table') to solve collisions.
 #  The outcome is either 0, 1 or 2 bodies. No fragments are generated.
@@ -22,6 +22,7 @@
 #  - v4.2: bug fixed -> the first largest remntant is now always the more massive
 #  - v4.3: bug fixed - evaluate chi and psi even for Nbig=0
 #  - v5.0: added EDACM collision solver from Leinhardt & Stewart 2012
+#  - v5.1: bug fixed in "step 1" of def EDACM(params)
 #
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------
@@ -238,9 +239,7 @@ def collision_solver(sim_pointer, collision):
 		if Nbig==2:
 			# get dynamics if Hit-and-Run
 			survivors = evolve_point_particles(p1,p2,survivors,ps[0])
-			print("HEREEE")
 			xrel = np.asarray(survivors[0][0])-np.asarray(survivors[1][0])
-			print(np.sqrt(xrel.dot(xrel)),get_radius(survivors[0][2],0)+get_radius(survivors[1][2],0))
 
 	# check for possible reaccretion
 	if Nbig==2:
@@ -1042,7 +1041,7 @@ def EDACM(params):
 	b0 = (Rt-Rp)/(Rt+Rp)
 	b = np.sin(alpha*np.pi/180)
 
-	if b<=b0: alpha = 1.
+	if b<=b0: alpha_inter = 1.
 	else:
 		l = (Rt+Rp)*(1.-b)
 		alpha_inter = (3.*Rp-l)*l*l/(4.*Rp*Rp*Rp)
